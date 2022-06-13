@@ -1,4 +1,5 @@
 import 'package:chat_app/view/auth_page.dart';
+import 'package:chat_app/view/status_page.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,7 +17,7 @@ class Home extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      home: AuthPage(),
+      home: StatusPage(),
     );
   }
 }
