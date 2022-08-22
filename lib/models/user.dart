@@ -1,5 +1,3 @@
-
-
 class UserData {
   final String username;
   final String userId;

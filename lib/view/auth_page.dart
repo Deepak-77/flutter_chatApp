@@ -54,7 +54,7 @@ class AuthPage extends StatelessWidget {
                 validator: (val) {
                   if (val!.isEmpty) {
                     return 'Please provide email';
-                  } else if (val.contains('@')) {
+                  } else if (!val.contains('@')) {
                     return 'Please provide valid email';
                   }
                   return null;

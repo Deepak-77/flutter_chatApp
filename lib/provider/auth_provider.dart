@@ -8,37 +8,43 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 final authProvider = Provider((ref) => AuthProvider());
-final authStream= StreamProvider((ref) => FirebaseAuth.instance.authStateChanges());
-
+final authStream =
+    StreamProvider((ref) => FirebaseAuth.instance.authStateChanges());
 
 class AuthProvider {
+  CollectionReference userDb = FirebaseFirestore.instance.collection('users');
 
-  CollectionReference userDb=FirebaseFirestore.instance.collection('users');
-
-  Future<String> userLogin({required String email,required String password}) async {
+  Future<String> userLogin(
+      {required String email, required String password}) async {
     try {
-     final response= await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+      final response = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
       return 'Success';
     } on FirebaseAuthException catch (err) {
       return '${err.message}';
     }
   }
 
-  Future<String> userSignUp({required String email,required String password,required String userName,required XFile image}) async {
+  Future<String> userSignUp(
+      {required String email,
+      required String password,
+      required String userName,
+      required XFile image}) async {
     try {
-      final imageName=image.name;
-      final imageFile=File(image.path);
-      final ref=FirebaseStorage.instance.ref().child('userImage/$imageName');
+      final imageName = image.name;
+      final imageFile = File(image.path);
+      final ref = FirebaseStorage.instance.ref().child('userImage/$imageName');
       await ref.putFile(imageFile);
-      final url=await ref.getDownloadURL();
+      final url = await ref.getDownloadURL();
 
-      final response=await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
+      final response = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
 
       await userDb.add({
-      'username':userName,
-     'userId':response.user!.uid,
-      'email':email,
-      'userImageUrl':url
+        'username': userName,
+        'userId': response.user!.uid,
+        'email': email,
+        'userImageUrl': url
       });
 
       return 'Success';
