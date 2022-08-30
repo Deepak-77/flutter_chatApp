@@ -1,64 +1,71 @@
 import 'dart:io';
-
+import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter_firebase_chat_core/flutter_firebase_chat_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 final authProvider = Provider((ref) => AuthProvider());
-final authStream =
-    StreamProvider((ref) => FirebaseAuth.instance.authStateChanges());
+final authStream = StreamProvider.autoDispose((ref) => FirebaseAuth.instance.authStateChanges());
 
-class AuthProvider {
+class AuthProvider{
+
+
   CollectionReference userDb = FirebaseFirestore.instance.collection('users');
 
-  Future<String> userLogin(
-      {required String email, required String password}) async {
-    try {
-      final response = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(email: email, password: password);
-      return 'Success';
-    } on FirebaseAuthException catch (err) {
+  Future<String> userLogin({required String email, required String password}) async{
+    try{
+      final response =   await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+      return 'success';
+    }on FirebaseAuthException catch (err){
       return '${err.message}';
     }
   }
 
-  Future<String> userSignUp(
-      {required String email,
-      required String password,
-      required String userName,
-      required XFile image}) async {
-    try {
+
+  Future<String> userSignUp({required String email,
+    required String password, required String userName, required XFile image}) async{
+    try{
       final imageName = image.name;
       final imageFile = File(image.path);
       final ref = FirebaseStorage.instance.ref().child('userImage/$imageName');
       await ref.putFile(imageFile);
       final url = await ref.getDownloadURL();
-
-      final response = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(email: email, password: password);
-
-      await userDb.add({
-        'username': userName,
-        'userId': response.user!.uid,
-        'email': email,
-        'userImageUrl': url
-      });
-
-      return 'Success';
-    } on FirebaseAuthException catch (err) {
+      final response = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: email, password: password);
+      final userToken = await FirebaseMessaging.instance.getToken();
+      await FirebaseChatCore.instance.createUserInFirestore(
+          types.User(
+              firstName: userName,
+              id: response.user!.uid,
+              imageUrl: url,
+              metadata: {
+                'email': email,
+                'userId': response.user!.uid,
+                'userToken': userToken
+              }
+          )
+      );
+      return 'success';
+    }on FirebaseAuthException catch (err){
       return '${err.message}';
     }
   }
 
-  Future<String> userLogOut() async {
-    try {
+
+  Future<String> userLogOut() async{
+    try{
       await FirebaseAuth.instance.signOut();
-      return 'Success';
-    } on FirebaseAuthException catch (err) {
+      return 'success';
+    }on FirebaseAuthException catch (err){
       return '${err.message}';
     }
   }
+
+
+
+
 }
